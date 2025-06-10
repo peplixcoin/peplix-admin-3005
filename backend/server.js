@@ -22,13 +22,15 @@ app.use(express.json());
 // Enable CORS to allow requests from the frontend
 app.use(cors({
   origin: [
+    'https://peplix-admin-3005ccd654.onrender.com/',
+    'https://peplix-admin-3005ccd654.onrender.com/api',
     'http://localhost:5001', // Allow requests from the frontend served on the same port
   ],
   credentials: true, // If your app uses cookies or authentication headers
 }));
 
 // Serve static files from the React frontend build folder
-app.use(express.static(path.join(__dirname, 'build')));
+app.use(express.static(path.join(__dirname, 'build','index.html')));
 
 // Routes
 app.use('/api/auth', authRoutes);
