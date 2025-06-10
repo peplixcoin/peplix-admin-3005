@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
+const path = require('path');
 const cors = require('cors');
 
 const authRoutes = require('./routes/authRoutes');
@@ -11,29 +12,23 @@ const withdrawRoutes = require('./routes/withdrawRoutes');
 const welcomeRoutes = require('./routes/welcomeRoutes');
 const usdRateRoutes = require('./routes/usdRateRoutes');
 const termsRoutes = require('./routes/termsRoutes');
-const imageRoutes = require("./routes/imageRoutes");
+const imageRoutes = require('./routes/imageRoutes');
 
 const app = express();
 
+// Middleware to parse JSON
 app.use(express.json());
+
+// Enable CORS to allow requests from the frontend
 app.use(cors({
-    origin: [
-        'http://localhost:3001/',
-        'http://localhost:3001'
-    ]
+  origin: [
+    'http://localhost:5001', // Allow requests from the frontend served on the same port
+  ],
+  credentials: true, // If your app uses cookies or authentication headers
 }));
 
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
-    .then(() => {
-        console.log('MongoDB connected');
-    })
-    .catch((err) => {
-        console.error('MongoDB connection error:', err);
-    });
+// Serve static files from the React frontend build folder
+app.use(express.static(path.join(__dirname, 'build')));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -44,9 +39,26 @@ app.use('/api/withdrawals', withdrawRoutes);
 app.use('/api', welcomeRoutes);
 app.use('/api', usdRateRoutes);
 app.use('/api', termsRoutes);
-app.use("/api/image", imageRoutes);
+app.use('/api/image', imageRoutes);
 
-const PORT = 5001;
+// Handle client-side routing by serving index.html for all unmatched routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
+// MongoDB connection
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+  .then(() => {
+    console.log('MongoDB connected');
+  })
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+  });
+
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
-    console.log(`Server running at port ${PORT}`);
+  console.log(`Server running at port ${PORT}`);
 });
